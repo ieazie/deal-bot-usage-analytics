@@ -64,23 +64,7 @@ make docker-up
 - **API**: http://localhost:7001
 - **PgAdmin**: http://localhost:8080 (admin@dealbot.com / admin123)
 
-## 🏗️ Architecture
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │    Backend      │    │   Database      │
-│   (Next.js)     │◄──►│   (NestJS)      │◄──►│ (PostgreSQL)    │
-│   Port: 3000    │    │   Port: 7001    │    │   Port: 5432    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│     Nginx       │    │   S3 Service    │    │    PgAdmin      │
-│   (Reverse      │    │  (Data Source)  │    │  (DB Manager)   │
-│   Proxy)        │    │                 │    │   Port: 8080    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
 
 ## 📊 API Endpoints
 
@@ -332,15 +316,206 @@ curl http://localhost:7001/health/s3
 - Enable SSL/TLS for database connections in production
 - Regular security updates for PostgreSQL
 
+## 🏗️ Key Architectural Decisions and Trade-offs
 
-### Coding Standards
+### 1. **Technology Stack Choices**
 
-- **TypeScript**: Use strict type checking
-- **ESLint**: Follow configured linting rules
-- **Prettier**: Use consistent code formatting
-- **Comments**: Document complex business logic
-- **Tests**: Write tests for new functionality
+#### **Backend: NestJS vs Express/Fastify**
+**Decision**: NestJS with TypeScript
+- ✅ **Pros**: Built-in dependency injection, decorators, excellent TypeScript support, enterprise-ready
+- ❌ **Trade-offs**: Slightly heavier than Express, learning curve for decorators
+- **Rationale**: Long-term maintainability and team scalability outweighed performance overhead
 
+#### **Database: PostgreSQL vs NoSQL**
+**Decision**: PostgreSQL with TypeORM
+- ✅ **Pros**: ACID compliance, complex queries, mature ecosystem, excellent JSON support
+- ❌ **Trade-offs**: Vertical scaling limitations, schema migrations required
+- **Rationale**: Structured analytics data with relationships favored relational approach
+
+#### **Frontend: Next.js vs React SPA**
+**Decision**: Next.js App Router
+- ✅ **Pros**: SEO optimization, server-side rendering, built-in routing, performance optimizations
+- ❌ **Trade-offs**: Complex deployment, learning curve for App Router
+- **Rationale**: Analytics dashboards benefit from fast initial loads and SEO discoverability
+
+### 2. **Data Architecture Decisions**
+
+#### **Ingestion Pattern: Batch vs Stream Processing**
+**Decision**: Batch processing with configurable sizes
+- ✅ **Pros**: Simpler error handling, transaction safety, cost-effective for current scale
+- ❌ **Trade-offs**: Higher latency for real-time insights, periodic processing gaps
+- **Rationale**: Current data volume (10K-100K entries/day) doesn't justify streaming complexity
+
+#### **Data Storage: Normalized vs Denormalized**
+**Decision**: Hybrid approach with normalized entities + aggregation tables
+- ✅ **Pros**: Data integrity, flexible querying, efficient storage
+- ❌ **Trade-offs**: Complex joins for some analytics, potential performance bottlenecks
+- **Rationale**: Balanced approach supporting both transactional integrity and analytical performance
+
+#### **API Design: REST vs GraphQL**
+**Decision**: RESTful API
+- ✅ **Pros**: Simple to understand, excellent caching, standardized HTTP semantics
+- ❌ **Trade-offs**: Over-fetching data, multiple round trips for complex queries
+- **Rationale**: Analytics use cases are predictable; simplicity over flexibility
+
+### 3. **Performance and Scalability Trade-offs**
+
+#### **Database Indexing Strategy**
+- **Heavy indexing** on timestamp, user_id, conversation_id fields
+- **Trade-off**: Faster reads vs slower writes and increased storage
+- **Justification**: Read-heavy analytics workload prioritizes query performance
+
+#### **Connection Pooling**
+- **TypeORM connection pooling** with conservative limits
+- **Trade-off**: Memory usage vs connection overhead
+- **Configuration**: Balanced for current anticipated load
+
+#### **Frontend State Management**
+- **React Query** for server state, local state for UI
+- **Trade-off**: Bundle size vs developer experience and caching capabilities
+- **Rationale**: Analytics apps benefit heavily from intelligent caching
+
+### 4. **Development and Deployment Decisions**
+
+#### **Containerization Strategy**
+**Decision**: Multi-container Docker Compose setup
+- ✅ **Pros**: Environment consistency, easy local development, service isolation
+- ❌ **Trade-offs**: Resource overhead, complexity for simple deployments
+- **Rationale**: Team development efficiency and production parity critical
+
+#### **Testing Strategy**
+**Decision**: Comprehensive unit tests + focused integration tests
+- ✅ **Pros**: Fast feedback loop, reliable deployments, good coverage
+- ❌ **Trade-offs**: Test maintenance overhead, mocking complexity
+- **Rationale**: Analytics accuracy is critical; testing prevents data integrity issues
+
+## 🚀 System Extensions and Hardening
+
+### 1. **Immediate Improvements **
+
+#### **Performance Optimizations**
+```typescript
+// Add Redis caching layer
+@Injectable()
+export class CacheService {
+  constructor(@Inject(CACHE_MANAGER) private cache: Cache) {}
+  
+  async getOrSet<T>(key: string, fetcher: () => Promise<T>, ttl: number): Promise<T> {
+    const cached = await this.cache.get<T>(key);
+    if (cached) return cached;
+    
+    const fresh = await fetcher();
+    await this.cache.set(key, fresh, ttl);
+    return fresh;
+  }
+}
+```
+
+#### **Enhanced Error Handling**
+```typescript
+// Structured error tracking with context
+@Injectable()
+export class ErrorTrackingService {
+  logError(error: Error, context: Record<string, any>) {
+    // Send to external monitoring (Sentry, DataDog)
+    // Include user context, request details, stack traces
+  }
+}
+```
+
+#### **API Rate Limiting**
+```typescript
+// Implement throttling for public endpoints
+@UseGuards(ThrottlerGuard)
+@Throttle(100, 60) // 100 requests per minute
+export class AnalyticsController {
+  // Protected endpoints
+}
+```
+
+### 2. **Medium-term Enhancements (1-2 months)**
+
+#### **Real-time Features**
+```typescript
+// WebSocket implementation for live dashboard updates
+@WebSocketGateway(3001, { namespace: 'analytics' })
+export class AnalyticsGateway {
+  @SubscribeMessage('subscribe-metrics')
+  handleSubscription(client: Socket, payload: { userId: string }) {
+    // Real-time metric updates
+    // Live query monitoring
+    // Alert notifications
+  }
+}
+```
+
+#### **Advanced Analytics Engine**
+```sql
+-- Materialized views for complex aggregations
+CREATE MATERIALIZED VIEW daily_metrics AS
+SELECT 
+  DATE(timestamp) as date,
+  COUNT(*) as total_queries,
+  AVG(response_time_ms) as avg_response_time,
+  COUNT(CASE WHEN has_results = false THEN 1 END) as failed_queries
+FROM messages 
+WHERE role = 'user'
+GROUP BY DATE(timestamp);
+
+-- Refresh hourly
+REFRESH MATERIALIZED VIEW CONCURRENTLY daily_metrics;
+```
+
+### 3. **Long-term Hardening **
+
+#### **Microservices Architecture**
+```yaml
+# Service decomposition
+services:
+  ingestion-service:     # Dedicated S3 processing
+  analytics-service:     # Metrics calculation
+  query-service:         # Search and retrieval
+  notification-service:  # Alerts and reporting
+  auth-service:         # Authentication and authorization
+```
+
+#### **Data Pipeline Enhancement**
+```typescript
+// Event-driven architecture with message queues
+interface IngestionEvent {
+  type: 'S3_OBJECT_CREATED' | 'BATCH_PROCESSED' | 'ERROR_OCCURRED';
+  payload: any;
+  timestamp: Date;
+  source: string;
+}
+
+@Injectable()
+export class EventProcessor {
+  constructor(
+    private queue: Queue,
+    private eventStore: EventStore
+  ) {}
+  
+  async processEvent(event: IngestionEvent) {
+    // Event sourcing for audit trails
+    // Distributed processing
+    // Failure recovery mechanisms
+  }
+}
+```
+
+#### **Scalability Improvements**
+
+**Database Scaling**:
+```sql
+-- Table partitioning by date
+CREATE TABLE messages_2024_01 PARTITION OF messages
+    FOR VALUES FROM ('2024-01-01') TO ('2024-02-01');
+
+-- Read replicas for analytics queries
+-- Connection pooling with pgBouncer
+-- Automated failover setup
+```
 
 
 ## 📋 Available Scripts
