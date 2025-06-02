@@ -1,0 +1,73 @@
+[
+  {
+    "id": "conv-001",
+    "userId": "user-001",
+    "startedAt": "2024-01-15T10:30:00.000Z",
+    "endedAt": "2024-01-15T10:35:00.000Z",
+    "totalMessages": 4,
+    "satisfactionScore": 8,
+    "messages": [
+      {
+        "id": "msg-001",
+        "role": "user",
+        "content": "What are the best investment opportunities?",
+        "timestamp": "2024-01-15T10:30:00.000Z",
+        "hasResults": true,
+        "metadata": {}
+      },
+      {
+        "id": "msg-002", 
+        "role": "assistant",
+        "content": "Here are some great investment opportunities...",
+        "timestamp": "2024-01-15T10:30:01.250Z",
+        "responseTimeMs": 1250,
+        "hasResults": true,
+        "metadata": { "resultsCount": 5 }
+      },
+      {
+        "id": "msg-003",
+        "role": "user", 
+        "content": "Tell me more about real estate investing",
+        "timestamp": "2024-01-15T10:32:00.000Z",
+        "hasResults": true,
+        "metadata": {}
+      },
+      {
+        "id": "msg-004",
+        "role": "assistant",
+        "content": "Real estate investing involves...",
+        "timestamp": "2024-01-15T10:32:00.950Z", 
+        "responseTimeMs": 950,
+        "hasResults": true,
+        "metadata": { "resultsCount": 3 }
+      }
+    ]
+  },
+  {
+    "id": "conv-002",
+    "userId": "user-002", 
+    "startedAt": "2024-01-15T11:15:00.000Z",
+    "endedAt": "2024-01-15T11:18:00.000Z",
+    "totalMessages": 2,
+    "satisfactionScore": 3,
+    "messages": [
+      {
+        "id": "msg-005",
+        "role": "user",
+        "content": "How to calculate ROI?",
+        "timestamp": "2024-01-15T11:15:00.000Z",
+        "hasResults": false,
+        "metadata": {}
+      },
+      {
+        "id": "msg-006",
+        "role": "assistant", 
+        "content": "I couldn't find specific information about ROI calculation.",
+        "timestamp": "2024-01-15T11:15:02.100Z",
+        "responseTimeMs": 2100,
+        "hasResults": false,
+        "metadata": { "resultsCount": 0 }
+      }
+    ]
+  }
+] 

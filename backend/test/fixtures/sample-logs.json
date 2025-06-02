@@ -1,0 +1,67 @@
+[
+  {
+    "timestamp": "2024-01-15T10:30:00.000Z",
+    "level": "INFO",
+    "message": "Query processed",
+    "meta": {
+      "conversationId": "conv-001",
+      "userId": "user-001",
+      "query": "What are the best investment opportunities?",
+      "responseTimeMs": 1250,
+      "hasResults": true,
+      "resultsCount": 5
+    }
+  },
+  {
+    "timestamp": "2024-01-15T10:32:00.000Z",
+    "level": "INFO", 
+    "message": "Query processed",
+    "meta": {
+      "conversationId": "conv-001",
+      "userId": "user-001",
+      "query": "Tell me more about real estate investing",
+      "responseTimeMs": 950,
+      "hasResults": true,
+      "resultsCount": 3
+    }
+  },
+  {
+    "timestamp": "2024-01-15T11:15:00.000Z",
+    "level": "INFO",
+    "message": "Query processed", 
+    "meta": {
+      "conversationId": "conv-002",
+      "userId": "user-002",
+      "query": "How to calculate ROI?",
+      "responseTimeMs": 2100,
+      "hasResults": false,
+      "resultsCount": 0
+    }
+  },
+  {
+    "timestamp": "2024-01-15T14:20:00.000Z",
+    "level": "INFO",
+    "message": "Query processed",
+    "meta": {
+      "conversationId": "conv-003", 
+      "userId": "user-001",
+      "query": "Portfolio diversification strategies",
+      "responseTimeMs": 850,
+      "hasResults": true,
+      "resultsCount": 8
+    }
+  },
+  {
+    "timestamp": "2024-01-16T09:45:00.000Z",
+    "level": "INFO",
+    "message": "Query processed",
+    "meta": {
+      "conversationId": "conv-004",
+      "userId": "user-003", 
+      "query": "Cryptocurrency investment risks",
+      "responseTimeMs": 1850,
+      "hasResults": true,
+      "resultsCount": 12
+    }
+  }
+] 
