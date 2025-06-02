@@ -19,8 +19,8 @@ if [ ! -f .env ]; then
     echo "📝 Creating .env file from template..."
     cat > .env << EOF
 # AWS Configuration
-AWS_ACCESS_KEY_ID=AKIAUH2VA54VO5AZADOC
-AWS_SECRET_ACCESS_KEY=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
+AWS_ACCESS_KEY_ID=AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY=AWS_SECRET_ACCESS_KEY
 AWS_REGION=us-east-1
 S3_BUCKET_NAME=dev.deal-bot-logs
 
