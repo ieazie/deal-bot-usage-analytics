@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: dealbot_analytics
+      POSTGRES_USER: analytics_user
+      POSTGRES_PASSWORD: analytics_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U analytics_user -d dealbot_analytics"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+    
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@dealbot.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - app-network
+    
+  backend:
+    build: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://analytics_user:analytics_pass@db:5432/dealbot_analytics
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
+      NODE_ENV: development
+    ports:
+      - "7001:7000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: >
+      sh -c "
+        echo 'Waiting for database to be ready...' &&
+        npm run migration:run &&
+        echo 'Database migrations completed successfully' &&
+        npm run start:dev
+      "
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - app-network
+    
+  frontend:
+    build: ./frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:7001
+    ports:
+      - "5050:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+
+networks:
+  app-network:
+    driver: bridge 
