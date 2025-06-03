@@ -2,6 +2,12 @@
 
 A comprehensive TypeScript-based analytics platform for monitoring Deal Bot usage, featuring data ingestion from S3, PostgreSQL storage, and a user-friendly web interface for analyzing conversation logs and usage metrics.
 
+## 🎥 Demo Videos
+
+📺 **[Part 1](https://www.loom.com/share/bac96f9e5bc141b08821b2acfacda961?sid=52c59f64-8252-4da7-b56e-c6211437690a)** - Walkthrough of the solution & platform
+
+📺 **[Part 2](https://www.loom.com/share/8fcf917cda834e929fb6da3998ab40c8?sid=5e3b7d6b-8232-4ed9-b4cb-1baf1416561b)** - Ingestion working
+
 ## 🚀 Features
 
 - **Data Ingestion**: Automated S3 log processing with batch ingestion
@@ -35,6 +41,22 @@ Create a `.env` file in the root directory:
 
 ```env
 # Database Configuration
+DATABASE_URL=postgresql://analytics_user:analytics_pass@db:5432/dealbot_analytics
+
+# AWS Configuration
+AWS_ACCESS_KEY_ID=your_aws_access_key
+AWS_SECRET_ACCESS_KEY=your_aws_secret_key
+AWS_REGION=us-east-1
+S3_BUCKET_NAME=your-s3-bucket-name
+
+# API Configuration
+NEXT_PUBLIC_API_URL=http://localhost:7001
+```
+
+Create a `.env` file in the backend directory:
+
+```env
+# Database Configuration
 DATABASE_URL=postgresql://analytics_user:analytics_pass@localhost:5432/dealbot_analytics
 TEST_DATABASE_URL=postgresql://analytics_user:analytics_pass@localhost:5432/dealbot_analytics_test
 
@@ -45,7 +67,7 @@ AWS_REGION=us-east-1
 S3_BUCKET_NAME=your-s3-bucket-name
 
 # API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:7000
+NEXT_PUBLIC_API_URL=http://localhost:7001
 ```
 
 ### 3. Start the Application
